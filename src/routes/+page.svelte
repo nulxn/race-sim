@@ -5,6 +5,8 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Drawer from '$lib/components/ui/drawer/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Avatar from '$lib/components/ui/avatar/index.js';
 
 	interface Result {
 		name: string;
@@ -68,8 +70,10 @@
 				};
 			}
 
-			teams[result.team.id].points += i + 1;
 			teams[result.team.id].athletes += 1;
+			if (teams[result.team.id].athletes < 6) {
+				teams[result.team.id].points += i + 1;
+			}
 		});
 
 		return Object.values(teams).sort((a, b) => a.points - b.points);
@@ -90,7 +94,7 @@
 </script>
 
 <div class="results pb-5">
-	<Table.Root class="w-[500px]">
+	<Table.Root class="w-[600px]">
 		<Table.Caption>Race Results</Table.Caption>
 		<Table.Header>
 			<Table.Row>
@@ -113,7 +117,10 @@
 					</Table.Cell>
 					<Table.Cell>
 						<span class="flex items-center">
-							<span>{result.team.icon}</span>
+							<Avatar.Root>
+								<Avatar.Image src={result.team.icon} />
+								<Avatar.Fallback>{result.team.icon}</Avatar.Fallback>
+							</Avatar.Root>
 							<span class="ml-2">{result.team.name}</span>
 						</span>
 					</Table.Cell>
@@ -136,8 +143,8 @@
 					<Drawer.Content>
 						<div class="mx-auto w-full max-w-sm">
 							<Drawer.Header>
-								<Drawer.Title>Move Goal</Drawer.Title>
-								<Drawer.Description>Set your daily activity goal.</Drawer.Description>
+								<Drawer.Title>Add result</Drawer.Title>
+								<Drawer.Description>Create a new athlete in the simulation</Drawer.Description>
 							</Drawer.Header>
 							<div class="p-4 pb-0">
 								<h2>Create a result</h2>
@@ -149,7 +156,50 @@
 									>
 									<Select.Content>
 										<Select.Group>
-											<Select.GroupHeading>Teams</Select.GroupHeading>
+											<Select.GroupHeading
+												><Dialog.Root>
+													<Dialog.Trigger class={buttonVariants({ variant: 'outline' })}
+														>Or create a new one</Dialog.Trigger
+													>
+													<Dialog.Content class="sm:max-w-[425px]">
+														<Dialog.Header>
+															<Dialog.Title>Create a new Team</Dialog.Title>
+															<Dialog.Description>
+																Create a new team to add to the simulation
+															</Dialog.Description>
+														</Dialog.Header>
+														<div class="grid gap-4 py-4">
+															<Input id="t-name" placeholder="Team Name" />
+															<Input id="t-icon" placeholder="Team Icon" />
+															<Input id="t-color" placeholder="Team Color" />
+															<Button
+																onclick={() => {
+																	let data: TeamResult = {
+																		name: (document.getElementById('t-name') as HTMLInputElement)
+																			.value,
+																		icon: (document.getElementById('t-icon') as HTMLInputElement)
+																			.value,
+																		color: (document.getElementById('t-color') as HTMLInputElement)
+																			.value,
+																		id: [...teamResults, ...doesntScore].length + 1,
+																		points: 0,
+																		athletes: 0
+																	};
+
+																	results = [
+																		...results,
+																		{
+																			name: 'New Team',
+																			time: '99:99',
+																			team: data
+																		}
+																	];
+																}}>Submit</Button
+															>
+														</div>
+													</Dialog.Content>
+												</Dialog.Root></Select.GroupHeading
+											>
 											{#each [...teamResults, ...doesntScore] as team, i (i)}
 												<Select.Item value={team.name}>{team.name}</Select.Item>
 											{/each}
@@ -175,7 +225,7 @@
 										results = [...results, data];
 									}}>Submit</Button
 								>
-								<Drawer.Close>Cancel</Drawer.Close>
+								<Drawer.Close>Close</Drawer.Close>
 							</Drawer.Footer>
 						</div>
 					</Drawer.Content>
